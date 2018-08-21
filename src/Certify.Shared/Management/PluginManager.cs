@@ -4,6 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
+using Certify.Models.Shared;
+using Registration.Core.Models.Shared;
 
 namespace Certify.Management
 {
@@ -66,7 +69,47 @@ namespace Certify.Management
 
             s.Stop();
 
+            if (LicensingManager == null)
+            {
+                LicensingManager = new FakeLicensingManager();
+            }
+
             Debug.WriteLine($"Plugin load took {s.ElapsedMilliseconds}ms");
+        }
+
+        private class FakeLicensingManager : ILicensingManager
+        {
+            public Task<LicenseCheckResult> Validate(int productTypeId, string email, string key)
+            {
+                return Task.FromResult(new LicenseCheckResult
+                {
+                    IsValid = true,
+                });
+            }
+
+            public Task<LicenseKeyInstallResult> RegisterInstall(int productTypeId, string email, string key,
+                RegisteredInstance instance)
+            {
+                return Task.FromResult(new LicenseKeyInstallResult
+                {
+                    IsSuccess = true,
+                });
+            }
+
+            public bool FinaliseInstall(int productTypeId, LicenseKeyInstallResult result, string settingsPath)
+            {
+                return true;
+            }
+
+            public bool IsInstallRegistered(int productTypeId, string settingsPath)
+            {
+                return true;
+            }
+
+            public Task<bool> IsInstallActive(int productTypeId, string settingsPath)
+            {
+                return Task.FromResult(true);
+            }
         }
     }
 }
